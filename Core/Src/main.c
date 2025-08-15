@@ -36,10 +36,27 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+//LED Control
 #define NUM_LEDS 5
 #define MAX_DUTY 999
 #define STEP_DELAY_MS 2
 #define PHASE_SHIFT 200
+
+// Pushbutton GPIO
+#define BTN_PLAY_PAUSE    GPIO_PIN_3
+#define BTN_NEXT          GPIO_PIN_4
+#define BTN_PREV          GPIO_PIN_5
+#define BTN_VOL_UP        GPIO_PIN_6
+#define BTN_VOL_DOWN      GPIO_PIN_7
+#define BTN_PORT          GPIOB
+
+// Standard HID control codes
+#define HID_PLAY_PAUSE    0x00CD
+#define HID_NEXT          0x00B5
+#define HID_PREV          0x00B6
+#define HID_VOL_UP        0x00E9
+#define HID_VOL_DOWN      0x00EA
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -113,6 +130,7 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
+  // Start PWM channels for LEDs
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1); // PA0
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2); // PA1
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3); // PA2
@@ -127,6 +145,20 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+    // Check all pushbuttons
+    if (HAL_GPIO_ReadPin(BTN_PORT, BTN_PLAY_PAUSE))
+        SendMediaKey(HID_PLAY_PAUSE);
+    if (HAL_GPIO_ReadPin(BTN_PORT, BTN_NEXT))
+        SendMediaKey(HID_NEXT);
+    if (HAL_GPIO_ReadPin(BTN_PORT, BTN_PREV))
+        SendMediaKey(HID_PREV);
+    if (HAL_GPIO_ReadPin(BTN_PORT, BTN_VOL_UP))
+        SendMediaKey(HID_VOL_UP);
+    if (HAL_GPIO_ReadPin(BTN_PORT, BTN_VOL_DOWN))
+        SendMediaKey(HID_VOL_DOWN);
+
+    
+    // TODO: Move LED pattern handling into separate function.
 	  for (int i = 0; i < NUM_LEDS; i++)
 	      {
 	          // Calculate LED's individual phase-shifted fade step
